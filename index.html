@@ -163,9 +163,17 @@ tbody td.c{text-align:center}
 
 <header class="site-header">
   <div class="header-inner">
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
     <div class="site-title" onclick="showMain()"><span class="year-badge">2027</span>학교장추천전형 총정리</div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <div class="hdr-meta">수시 학생부교과 · 기회균형</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="hdr-meta">학교추천</div>
+      <button onclick="exportData()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:4px 11px;border-radius:20px;font-size:11px;font-family:'Noto Sans KR',sans-serif;cursor:pointer">📤 내보내기</button>
+      <label style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:4px 11px;border-radius:20px;font-size:11px;font-family:'Noto Sans KR',sans-serif;cursor:pointer">📥 가져오기<input type="file" accept=".json" onchange="importData(this)" style="display:none"></label>
       <button id="lockBtn" onclick="toggleAuth()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s">
         <span id="lockIcon">🔒</span><span id="lockLabel">편집 잠김</span>
       </button>
@@ -199,7 +207,7 @@ tbody td.c{text-align:center}
     </div>
     <div class="table-wrap"><table>
       <thead><tr>
-        <th>대학명</th><th>전형명</th>
+        <th>대학명</th><th class="c">전형종류</th>
         <th class="c">졸업생 가능</th><th class="c">2027 모집</th><th class="c">2026 모집</th>
         <th class="c">전형방식</th><th>반영교과</th><th>수능최저</th>
       </tr></thead>
@@ -215,7 +223,7 @@ tbody td.c{text-align:center}
     </div>
     <div class="table-wrap"><table>
       <thead><tr>
-        <th>대학명</th><th>전형명</th>
+        <th>대학명</th><th class="c">전형종류</th>
         <th class="c">추천 제한</th><th class="c">졸업생 가능</th>
         <th class="c">2027 모집</th><th class="c">2026 모집</th>
         <th class="c">전형방식</th><th>반영교과</th><th>수능최저</th>
@@ -266,80 +274,131 @@ tbody td.c{text-align:center}
 <footer class="site-footer">2027학년도 학교장추천전형 정리 · 모집요강 확정 전 자료이므로 반드시 각 대학 공식 모집요강 확인 필요</footer>
 
 <script>
-// ── DATA ──────────────────────────────────────────────────────────
+// ── DATA ─────────────────────────────────────────────────────────
+// category: '교과' | '종합' | '교과(면접)' — 사용자가 상세페이지에서 편집 가능
 const UNIS=[
-  {id:'gachon',      name:'가천대',    type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:358, y2026:407,y2025:374, subjects:'국, 수, 영, 사, 과',                                     method:'1단계(7배수): 교과100\n2단계: 1단계50 + 면접50',    methodType:'interview',suneung:'없음'},
-  {id:'gatolik_g',   name:'가톨릭대',  type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:255, y2026:282,y2025:332, subjects:'국, 수, 영, 사, 과, 한',                                  method:'일반: 교과100\n의예: 교과100 + 인적성면접(합/불)', methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합7\n자유·인문·자연공학: 2개 합6\n약학: 국,수,영,과(1) 3개 합5\n간호: 3개 합7\n의예: 국,수,영,과(절사) 4개 합5 한4'},
-  {id:'gangnam',     name:'강남대',    type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:185, y2026:163,y2025:202, subjects:'국, 수, 영, 사, 과, 한 중 20과목',                         method:'교과100',                                           methodType:'kwagyo100',suneung:'주간: 국,수,영,탐(1) 1개 3등급\n야간: 없음'},
-  {id:'konkuk',      name:'건국대',    type:'KU지역균형',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:346, y2026:428,y2025:441, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과70 + 서류30',                                   methodType:'docu',     suneung:'없음'},
-  {id:'kyungin',     name:'경인교대',  type:'학교장추천',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2021,y2027:110, y2026:110,y2025:140, subjects:'전과목',                                                  method:'교과70 + 면접30',                                   methodType:'interview',suneung:'국,수,영,탐(1) 4개 합14'},
-  {id:'kyunghee',    name:'경희대',    type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:528, y2026:562,y2025:577, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과56 + 출결7 + 봉사7 + 서류30',                   methodType:'docu',     suneung:'국,수,영,탐 2개 합5, 한5\n의예·한의예·치의예·약학: 3개 합4, 한5'},
-  {id:'gwangwoon',   name:'광운대',    type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:198, y2026:199,y2025:194, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
-  {id:'kookmin',     name:'국민대',    type:'교과성적우수자',  hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:591, y2026:401,y2025:497, subjects:'인문: 국,수,영,사\n자연: 국,수,영,과',                    method:'교과100',                                           methodType:'kwagyo100',suneung:'인문: 국,수,영,탐(1) 2개 합6\n자연: 국,수,영,과(1) 2개 합6'},
-  {id:'dankook',     name:'단국대',    type:'지역균형선발',    hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:241, y2026:252,y2025:273, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합6'},
-  {id:'daejin',      name:'대진대',    type:'학교장추천',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:213, y2026:203,y2025:202, subjects:'국,수,영,사,과,한 중 상위 18과목\n(진로선택 최대 8과목)', method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
-  {id:'duksungw',    name:'덕성여대',  type:'고교추천',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2019,y2027:145, y2026:175,y2025:128, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합7\n약학: 3개 합5 (수 포함)'},
-  {id:'dongdukw',    name:'동덕여대',  type:'학생부교과우수자',hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:185, y2026:244,y2025:182, subjects:'인문·자연: 국,수,영,(사,과)\n약학: 국,수,영,과',          method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합6\n약학: 국,수(미/기),과(1) 3개 합6'},
-  {id:'myongji',     name:'명지대',    type:'학교장추천',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:289, y2026:291,y2025:292, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과',                method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
-  {id:'sahmyook',    name:'삼육대',    type:'학교장추천',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2005,y2027:100, y2026:103,y2025:177, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐/직(1) 2개 합7\n간호·물리치료: 2개 합6\n약학: 국,수(미/기),영,과(1) 3개 합5'},
-  {id:'sangmyung',   name:'상명대',    type:'고교추천',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2022,y2027:319, y2026:349,y2025:349, subjects:'전과목',                                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
-  {id:'seoulw',      name:'서울여대',  type:'교과우수자',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:176, y2026:171,y2025:176, subjects:'국, 수, 영, 사, 과',                                     method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합7'},
-  {id:'skku',        name:'성균관대',  type:'학교장추천',      hasLimit:false,limitNote:'제한없음 ★변경',gradPolicy:'all', gradFromYear:null,y2027:424, y2026:416,y2025:391, subjects:'전과목',                                                  method:'교과80 + 서류20',                                   methodType:'docu',     suneung:'국,수,영,탐 3개 합7\n자유·글로벌·SW·반도체·에너지·전자전기: 3개 합6\n의예: 4개 합5\n제2외/한문으로 탐 1과목 대체 가능'},
-  {id:'sungshin',    name:'성신여대',  type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:274, y2026:240,y2025:240, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과\n자유전공: 국,수,영,(사한과)',method:'교과90 + 출결10',                              methodType:'docu',     suneung:'국,수,영,탐(1) 2개 합7'},
-  {id:'sejong',      name:'세종대',    type:'지역균형',        hasLimit:false,limitNote:'모집요강확인',gradPolicy:'all',   gradFromYear:null,y2027:398, y2026:350,y2025:331, subjects:'인문: 국,수,영,사\n자연: 국,수,영,과\n자유전공: 국,수,영', method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합6\n자유전공: 2개 합5'},
-  {id:'suwon',       name:'수원대',    type:'고교추천',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:112, y2026:100,y2025:100, subjects:'인문: 국,수,영,사\n자연: 국,수,영,과\n(20과목, 교과별 상위 5과목)',method:'교과51.7 + 면접48.3',                         methodType:'interview',suneung:'국,수,영,탐/직(1) 1개 4등급'},
-  {id:'sookmyung',   name:'숙명여대',  type:'지역균형선발',    hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:287, y2026:248,y2025:251, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'일반: 없음\n약학: 국,수,영,탐(1) 3개 합5 (수 포함)'},
-  {id:'soongil',     name:'숭실대',    type:'학생부우수자',    hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:450, y2026:436,y2025:437, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과',                method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합6'},
-  {id:'ajou',        name:'아주대',    type:'고교추천',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:365, y2026:331,y2025:316, subjects:'국, 수, 영, 사, 과',                                     method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합5\n의학: 4개 합6'},
-  {id:'incheon',     name:'인천대',    type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2022,y2027:289, y2026:288,y2025:287, subjects:'인문·패션: 국,수,영,사,한\n자연: 국,수,영,과',            method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
-  {id:'inha',        name:'인하대',    type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:442, y2026:429,y2025:613, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과\n자유전공: 국,수,영,사,과,한',method:'교과100',                                  methodType:'kwagyo100',suneung:'인문: 2개 합6\n자연: 2개 합5\n의예: 국,수,영,과(절사) 3개 합4'},
-  {id:'cha',         name:'차의과학대',type:'지역균형선발',    hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:92,  y2026:89, y2025:89,  subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'일반: 없음\n약학: 국,수,영,탐(절사) 3개 합6 (수 포함)'},
-  {id:'hankyong',    name:'한경국립대',type:'지역균형선발',    hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2020,y2027:82,  y2026:27, y2025:27,  subjects:'전과목',                                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
-  {id:'koreatech',   name:'한국공학대',type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2023,y2027:196, y2026:190,y2025:212, subjects:'인문: 국,수,영,사/과,한\n자연: 국,수,영,과,한\n(16과목, 교과별 상위 4과목)',method:'교과100',                         methodType:'kwagyo100',suneung:'없음'},
-  {id:'hankukaero',  name:'한국항공대',type:'학교장추천',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:111, y2026:111,y2025:104, subjects:'인문: 국,수,영,사(한)/과 20과목\n자연: 국,수,영,과 20과목\n(교과별 5과목)',method:'교과100',                        methodType:'kwagyo100',suneung:'없음'},
-  {id:'hansung',     name:'한성대',    type:'지역균형',        hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:167, y2026:183,y2025:165, subjects:'인문: 국,수,영,사 12과목\n자연: 국,수,영,과 12과목\n상상력인재: 국,수,영,(사,과) 12과목',method:'교과100',            methodType:'kwagyo100',suneung:'없음'},
-  {id:'hansin',      name:'한신대',    type:'학교장추천',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:55,  y2026:55, y2025:55,  subjects:'국,수,영,사,과,한 중 12과목',                             method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
+  {id:'gachon',      name:'가천대',       category:'교과(면접)',hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:358, y2026:407,y2025:374, subjects:'국, 수, 영, 사, 과',                                     method:'1단계(7배수): 교과100\n2단계: 1단계50 + 면접50',    methodType:'interview',suneung:'없음'},
+  {id:'gatolik_g',   name:'가톨릭대',     category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:255, y2026:282,y2025:332, subjects:'국, 수, 영, 사, 과, 한',                                  method:'일반: 교과100\n의예: 교과100 + 인적성면접(합/불)', methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합7\n자유·인문·자연공학: 2개 합6\n약학: 국,수,영,과(1) 3개 합5\n간호: 3개 합7\n의예: 국,수,영,과(절사) 4개 합5 한4'},
+  {id:'gangnam',     name:'강남대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:185, y2026:163,y2025:202, subjects:'국, 수, 영, 사, 과, 한 중 20과목',                         method:'교과100',                                           methodType:'kwagyo100',suneung:'주간: 국,수,영,탐(1) 1개 3등급\n야간: 없음'},
+  {id:'konkuk',      name:'건국대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:346, y2026:428,y2025:441, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과70 + 서류30',                                   methodType:'docu',     suneung:'없음'},
+  {id:'kyungin',     name:'경인교대',     category:'교과(면접)',hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2021,y2027:110, y2026:110,y2025:140, subjects:'전과목',                                                  method:'교과70 + 면접30',                                   methodType:'interview',suneung:'국,수,영,탐(1) 4개 합14'},
+  {id:'kyunghee',    name:'경희대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:528, y2026:562,y2025:577, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과56 + 출결7 + 봉사7 + 서류30',                   methodType:'docu',     suneung:'국,수,영,탐 2개 합5, 한5\n의예·한의예·치의예·약학: 3개 합4, 한5'},
+  {id:'gwangwoon',   name:'광운대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:198, y2026:199,y2025:194, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
+  {id:'kookmin',     name:'국민대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:591, y2026:401,y2025:497, subjects:'인문: 국,수,영,사\n자연: 국,수,영,과',                    method:'교과100',                                           methodType:'kwagyo100',suneung:'인문: 국,수,영,탐(1) 2개 합6\n자연: 국,수,영,과(1) 2개 합6'},
+  {id:'dankook',     name:'단국대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:241, y2026:252,y2025:273, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합6'},
+  {id:'daejin',      name:'대진대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:213, y2026:203,y2025:202, subjects:'국,수,영,사,과,한 중 상위 18과목\n(진로선택 최대 8과목)', method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
+  {id:'duksungw',    name:'덕성여대',     category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2019,y2027:145, y2026:175,y2025:128, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합7\n약학: 3개 합5 (수 포함)'},
+  {id:'dongdukw',    name:'동덕여대',     category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:185, y2026:244,y2025:182, subjects:'인문·자연: 국,수,영,(사,과)\n약학: 국,수,영,과',          method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합6\n약학: 국,수(미/기),과(1) 3개 합6'},
+  {id:'myongji',     name:'명지대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:289, y2026:291,y2025:292, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과',                method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
+  {id:'sahmyook',    name:'삼육대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2005,y2027:100, y2026:103,y2025:177, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐/직(1) 2개 합7\n간호·물리치료: 2개 합6\n약학: 국,수(미/기),영,과(1) 3개 합5'},
+  {id:'sangmyung',   name:'상명대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2022,y2027:319, y2026:349,y2025:349, subjects:'전과목',                                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
+  {id:'seoulw',      name:'서울여대',     category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:176, y2026:171,y2025:176, subjects:'국, 수, 영, 사, 과',                                     method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합7'},
+  {id:'skku',        name:'성균관대',     category:'교과',      hasLimit:false,limitNote:'제한없음 ★변경',gradPolicy:'all',gradFromYear:null,y2027:424, y2026:416,y2025:391, subjects:'전과목',                                                  method:'교과80 + 서류20',                                   methodType:'docu',     suneung:'국,수,영,탐 3개 합7\n자유·글로벌·SW·반도체·에너지·전자전기: 3개 합6\n의예: 4개 합5\n제2외/한문으로 탐 1과목 대체 가능'},
+  {id:'sungshin',    name:'성신여대',     category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:274, y2026:240,y2025:240, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과\n자유전공: 국,수,영,(사한과)',method:'교과90 + 출결10',methodType:'docu',suneung:'국,수,영,탐(1) 2개 합7'},
+  {id:'sejong',      name:'세종대',       category:'교과',      hasLimit:false,limitNote:'모집요강확인',gradPolicy:'all',  gradFromYear:null,y2027:398, y2026:350,y2025:331, subjects:'인문: 국,수,영,사\n자연: 국,수,영,과\n자유전공: 국,수,영', method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합6\n자유전공: 2개 합5'},
+  {id:'suwon',       name:'수원대',       category:'교과(면접)',hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:112, y2026:100,y2025:100, subjects:'인문: 국,수,영,사\n자연: 국,수,영,과\n(20과목, 교과별 상위 5과목)',method:'교과51.7 + 면접48.3',methodType:'interview',suneung:'국,수,영,탐/직(1) 1개 4등급'},
+  {id:'sookmyung',   name:'숙명여대',     category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:287, y2026:248,y2025:251, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'일반: 없음\n약학: 국,수,영,탐(1) 3개 합5 (수 포함)'},
+  {id:'soongil',     name:'숭실대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:450, y2026:436,y2025:437, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과',                method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합6'},
+  {id:'ajou',        name:'아주대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:365, y2026:331,y2025:316, subjects:'국, 수, 영, 사, 과',                                     method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합5\n의학: 4개 합6'},
+  {id:'incheon',     name:'인천대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2022,y2027:289, y2026:288,y2025:287, subjects:'인문·패션: 국,수,영,사,한\n자연: 국,수,영,과',            method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
+  {id:'inha',        name:'인하대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2025,y2027:442, y2026:429,y2025:613, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과\n자유전공: 국,수,영,사,과,한',method:'교과100',methodType:'kwagyo100',suneung:'인문: 2개 합6\n자연: 2개 합5\n의예: 국,수,영,과(절사) 3개 합4'},
+  {id:'cha',         name:'차의과학대',   category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:92,  y2026:89, y2025:89,  subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'일반: 없음\n약학: 국,수,영,탐(절사) 3개 합6 (수 포함)'},
+  {id:'hankyong',    name:'한경국립대',   category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2020,y2027:82,  y2026:27, y2025:27,  subjects:'전과목',                                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
+  {id:'koreatech',   name:'한국공학대',   category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'from',   gradFromYear:2023,y2027:196, y2026:190,y2025:212, subjects:'인문: 국,수,영,사/과,한\n자연: 국,수,영,과,한\n(16과목, 교과별 상위 4과목)',method:'교과100',methodType:'kwagyo100',suneung:'없음'},
+  {id:'hankukaero',  name:'한국항공대',   category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:111, y2026:111,y2025:104, subjects:'인문: 국,수,영,사(한)/과 20과목\n자연: 국,수,영,과 20과목\n(교과별 5과목)',method:'교과100',methodType:'kwagyo100',suneung:'없음'},
+  {id:'hansung',     name:'한성대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:167, y2026:183,y2025:165, subjects:'인문: 국,수,영,사 12과목\n자연: 국,수,영,과 12과목\n상상력인재: 국,수,영,(사,과) 12과목',method:'교과100',methodType:'kwagyo100',suneung:'없음'},
+  {id:'hansin',      name:'한신대',       category:'교과',      hasLimit:false,limitNote:'제한없음',   gradPolicy:'all',    gradFromYear:null,y2027:55,  y2026:55, y2025:55,  subjects:'국,수,영,사,과,한 중 12과목',                             method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
   // 제한있음
-  {id:'kyunggi',     name:'경기대',    type:'학교장추천',      hasLimit:true, limitNote:'20명',       gradPolicy:'from',   gradFromYear:2026,y2027:283, y2026:317,y2025:323, subjects:'전과목',                                                  method:'교과90 + 출결10',                                   methodType:'docu',     suneung:'없음'},
-  {id:'korea',       name:'고려대',    type:'학교추천',        hasLimit:true, limitNote:'12명',       gradPolicy:'current',gradFromYear:null,y2027:648, y2026:653,y2025:615, subjects:'전과목',                                                  method:'교과90 + 서류10',                                   methodType:'docu',     suneung:'국,수,영,탐(1) 3개 합7, 한4\n의대: 4개 합5, 한4'},
-  {id:'dongkuk',     name:'동국대',    type:'학교장추천인재',  hasLimit:true, limitNote:'8명',        gradPolicy:'all',    gradFromYear:null,y2027:366, y2026:403,y2025:384, subjects:'인문: 국,수,영,사,한 상위 10과목\n자연: 국,수,영,과,한 상위 10과목',method:'교과70 + 서류30',              methodType:'docu',     suneung:'없음'},
-  {id:'sogang',      name:'서강대',    type:'지역균형',        hasLimit:true, limitNote:'20명',       gradPolicy:'current',gradFromYear:null,y2027:'175+3(계약학과)',y2026:178,y2025:178,subjects:'전과목',                                     method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 각3, 한4'},
-  {id:'seoultech',   name:'서울과기대',type:'고교추천',        hasLimit:true, limitNote:'모집요강 확인',gradPolicy:'confirm',gradFromYear:null,y2027:509,y2026:473,y2025:429,subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과\n건축: 국,수,영,사,과,한',method:'교과100',                          methodType:'kwagyo100',suneung:'국,수,영,탐/직(1) 2개 합7\n간호·물리치료: 2개 합6'},
-  {id:'seoulnation', name:'서울교대',  type:'학교장추천',      hasLimit:true, limitNote:'3% (재학생만)',gradPolicy:'current',gradFromYear:null,y2027:40,y2026:40,y2025:40,  subjects:'전과목',                                                  method:'1단계(2배수): 교과100\n2단계: 1단계80 + 면접20',   methodType:'interview',suneung:'국,수,영,탐 2개 합6, 한4'},
-  {id:'snu',         name:'서울대',    type:'지역균형',        hasLimit:true, limitNote:'2명',        gradPolicy:'from',   gradFromYear:2027,y2027:'-', y2026:'-',y2025:'-',  subjects:'종합전형 (서류+면접)',                                    method:'1단계: 서류100\n2단계: 서류+면접',                  methodType:'interview',suneung:'해당 없음 (수능 응시 필수)'},
-  {id:'uos',         name:'서울시립대',type:'지역균형선발',    hasLimit:true, limitNote:'20명',       gradPolicy:'from',   gradFromYear:2026,y2027:241, y2026:236,y2025:194, subjects:'전과목',                                                  method:'교과80 + 서류20',                                   methodType:'docu',     suneung:'국,수,영,탐(1) 3개 합8, 한4'},
-  {id:'yonsei',      name:'연세대',    type:'추천형',          hasLimit:true, limitNote:'10명',       gradPolicy:'current',gradFromYear:null,y2027:'475+25(계약학과)',y2026:'484+25(계약학과)',y2025:'475+25(계약학과)',subjects:'전과목',           method:'교과100',                                           methodType:'kwagyo100',suneung:'인문: 국,수,탐(1) 2개 합4, 영3, 한4 (국/수 포함)\n자연: 국,수(미/기),과(1) 2개 합5, 영3, 한4 (수 포함)\n의예·치의예·약학: 국,수(미/기),과(1) 1등급 2개, 영3, 한4'},
-  {id:'eulji',       name:'을지대',    type:'지역균형',        hasLimit:true, limitNote:'모집요강 확인',gradPolicy:'confirm',gradFromYear:null,y2027:98, y2026:151,y2025:114, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'간호대: 2개 합8\n보건과학대: 1개 4등급\n안경광학과·의료경영학과: 없음'},
-  {id:'ewha',        name:'이화여대',  type:'고교추천',        hasLimit:true, limitNote:'20명',       gradPolicy:'from',   gradFromYear:2026,y2027:368, y2026:360,y2025:400, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합5\n인문은 국, 자연은 수 응시 필수'},
-  {id:'cau',         name:'중앙대',    type:'지역균형',        hasLimit:true, limitNote:'20명',       gradPolicy:'from',   gradFromYear:2026,y2027:404, y2026:500,y2025:500, subjects:'국, 수, 영, 사, 과',                                     method:'교과90 + 출결10',                                   methodType:'docu',     suneung:'국,수,영,탐(1) 3개 합7, 한4\n약학: 4개 합5, 한4\n영 2등급→1등급 인정'},
-  {id:'pyeongtaek',  name:'평택대',    type:'PTU추천',         hasLimit:true, limitNote:'모집요강 확인',gradPolicy:'current',gradFromYear:null,y2027:114,y2026:83, y2025:76,  subjects:'국,수,영,사,과,한 중 3과목',                             method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
-  {id:'hufs',        name:'한국외대',  type:'학교장추천',      hasLimit:true, limitNote:'20명 (캠퍼스별 10명)',gradPolicy:'from',gradFromYear:2026,y2027:'375(서울200/글로벌175)',y2026:'380(서울205/글로벌175)',y2025:'369(195/174)',subjects:'국, 수, 영, 사, 과, 한',method:'교과100',  methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합4'},
-  {id:'hyu',         name:'한양대',    type:'추천형',          hasLimit:true, limitNote:'11%',        gradPolicy:'from',   gradFromYear:2026,y2027:'330+6(계약학과)',y2026:'327+6(계약학과)',y2025:'327+6(계약학과)',subjects:'국, 수, 영, 사, 과, 한',method:'교과90 + 서류10',                 methodType:'docu',     suneung:'국,수,영,탐(1) 3개 합7'},
-  {id:'hyu_erica',   name:'한양대(ERICA)',type:'지역균형선발', hasLimit:true, limitNote:'모집요강 확인',gradPolicy:'from',  gradFromYear:2026,y2027:509, y2026:518,y2025:478, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합7\n약학: 3개 합5'},
-  {id:'hongik',      name:'홍익대',    type:'학교장추천자',    hasLimit:true, limitNote:'10명',       gradPolicy:'from',   gradFromYear:2025,y2027:303, y2026:307,y2025:308, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과',                method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 합8, 한4'},
-  {id:'gist',        name:'GIST',      type:'학교장추천',      hasLimit:true, limitNote:'2명',        gradPolicy:'from',   gradFromYear:2027,y2027:'-', y2026:'-',y2025:'-',  subjects:'자연: 국,수,영,과',                                      method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 합8, 한4'},
-  {id:'dgist',       name:'DGIST',     type:'학교장추천',      hasLimit:true, limitNote:'2명',        gradPolicy:'from',   gradFromYear:2027,y2027:'-', y2026:'-',y2025:'-',  subjects:'자연: 국,수,영,과',                                      method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 합8, 한4'},
-  {id:'kaist',       name:'KAIST',     type:'학교장추천',      hasLimit:true, limitNote:'2명',        gradPolicy:'from',   gradFromYear:2027,y2027:'-', y2026:'-',y2025:'-',  subjects:'자연: 국,수,영,과',                                      method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 합8, 한4'},
+  {id:'kyunggi',     name:'경기대',       category:'교과',      hasLimit:true, limitNote:'20명',       gradPolicy:'from',   gradFromYear:2026,y2027:283, y2026:317,y2025:323, subjects:'전과목',                                                  method:'교과90 + 출결10',                                   methodType:'docu',     suneung:'없음'},
+  {id:'korea',       name:'고려대',       category:'교과',      hasLimit:true, limitNote:'12명',       gradPolicy:'current',gradFromYear:null,y2027:648, y2026:653,y2025:615, subjects:'전과목',                                                  method:'교과90 + 서류10',                                   methodType:'docu',     suneung:'국,수,영,탐(1) 3개 합7, 한4\n의대: 4개 합5, 한4'},
+  {id:'dongkuk',     name:'동국대',       category:'교과',      hasLimit:true, limitNote:'8명',        gradPolicy:'all',    gradFromYear:null,y2027:366, y2026:403,y2025:384, subjects:'인문: 국,수,영,사,한 상위 10과목\n자연: 국,수,영,과,한 상위 10과목',method:'교과70 + 서류30',methodType:'docu',suneung:'없음'},
+  {id:'sogang',      name:'서강대',       category:'교과',      hasLimit:true, limitNote:'20명',       gradPolicy:'current',gradFromYear:null,y2027:'175+3(계약학과)',y2026:178,y2025:178,subjects:'전과목',                                     method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 각3, 한4'},
+  {id:'seoultech',   name:'서울과기대',   category:'교과',      hasLimit:true, limitNote:'모집요강 확인',gradPolicy:'confirm',gradFromYear:null,y2027:509,y2026:473,y2025:429,subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과\n건축: 국,수,영,사,과,한',method:'교과100',methodType:'kwagyo100',suneung:'국,수,영,탐/직(1) 2개 합7\n간호·물리치료: 2개 합6'},
+  {id:'seoulnation', name:'서울교대',     category:'교과(면접)',hasLimit:true, limitNote:'3% (재학생만)',gradPolicy:'current',gradFromYear:null,y2027:40,y2026:40,y2025:40,subjects:'전과목',                                                  method:'1단계(2배수): 교과100\n2단계: 1단계80 + 면접20',   methodType:'interview',suneung:'국,수,영,탐 2개 합6, 한4'},
+  {id:'snu',         name:'서울대',       category:'종합',      hasLimit:true, limitNote:'2명',        gradPolicy:'from',   gradFromYear:2027,y2027:'-', y2026:'-',y2025:'-',  subjects:'종합전형 (서류+면접)',                                    method:'1단계: 서류100\n2단계: 서류+면접',                  methodType:'interview',suneung:'해당 없음 (수능 응시 필수)'},
+  {id:'uos',         name:'서울시립대',   category:'교과',      hasLimit:true, limitNote:'20명',       gradPolicy:'from',   gradFromYear:2026,y2027:241, y2026:236,y2025:194, subjects:'전과목',                                                  method:'교과80 + 서류20',                                   methodType:'docu',     suneung:'국,수,영,탐(1) 3개 합8, 한4'},
+  {id:'yonsei',      name:'연세대',       category:'교과',      hasLimit:true, limitNote:'10명',       gradPolicy:'current',gradFromYear:null,y2027:'475+25(계약학과)',y2026:'484+25(계약학과)',y2025:'475+25(계약학과)',subjects:'전과목',   method:'교과100',                                           methodType:'kwagyo100',suneung:'인문: 국,수,탐(1) 2개 합4, 영3, 한4\n자연: 국,수(미/기),과(1) 2개 합5, 영3, 한4\n의예·치의예·약학: 국,수(미/기),과(1) 1등급 2개, 영3, 한4'},
+  {id:'eulji',       name:'을지대',       category:'교과',      hasLimit:true, limitNote:'모집요강 확인',gradPolicy:'confirm',gradFromYear:null,y2027:98,y2026:151,y2025:114,subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'간호대: 2개 합8\n보건과학대: 1개 4등급\n안경광학과·의료경영학과: 없음'},
+  {id:'ewha',        name:'이화여대',     category:'교과',      hasLimit:true, limitNote:'20명',       gradPolicy:'from',   gradFromYear:2026,y2027:368, y2026:360,y2025:400, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합5\n인문은 국, 자연은 수 응시 필수'},
+  {id:'cau',         name:'중앙대',       category:'교과',      hasLimit:true, limitNote:'20명',       gradPolicy:'from',   gradFromYear:2026,y2027:404, y2026:500,y2025:500, subjects:'국, 수, 영, 사, 과',                                     method:'교과90 + 출결10',                                   methodType:'docu',     suneung:'국,수,영,탐(1) 3개 합7, 한4\n약학: 4개 합5, 한4\n영 2등급→1등급 인정'},
+  {id:'pyeongtaek',  name:'평택대',       category:'교과',      hasLimit:true, limitNote:'모집요강 확인',gradPolicy:'current',gradFromYear:null,y2027:114,y2026:83,y2025:76,subjects:'국,수,영,사,과,한 중 3과목',                              method:'교과100',                                           methodType:'kwagyo100',suneung:'없음'},
+  {id:'hufs',        name:'한국외대',     category:'교과',      hasLimit:true, limitNote:'20명 (캠퍼스별 10명)',gradPolicy:'from',gradFromYear:2026,y2027:'375(서울200/글로벌175)',y2026:'380(서울205/글로벌175)',y2025:'369(195/174)',subjects:'국, 수, 영, 사, 과, 한',method:'교과100',methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합4'},
+  {id:'hyu',         name:'한양대',       category:'교과',      hasLimit:true, limitNote:'11%',        gradPolicy:'from',   gradFromYear:2026,y2027:'330+6(계약학과)',y2026:'327+6(계약학과)',y2025:'327+6(계약학과)',subjects:'국, 수, 영, 사, 과, 한',method:'교과90 + 서류10',methodType:'docu',suneung:'국,수,영,탐(1) 3개 합7'},
+  {id:'hyu_erica',   name:'한양대(ERICA)',category:'교과',      hasLimit:true, limitNote:'모집요강 확인',gradPolicy:'from',  gradFromYear:2026,y2027:509, y2026:518,y2025:478, subjects:'국, 수, 영, 사, 과, 한',                                  method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 2개 합7\n약학: 3개 합5'},
+  {id:'hongik',      name:'홍익대',       category:'교과',      hasLimit:true, limitNote:'10명',       gradPolicy:'from',   gradFromYear:2025,y2027:303, y2026:307,y2025:308, subjects:'인문: 국,수,영,사,한\n자연: 국,수,영,과',                method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 합8, 한4'},
+  {id:'gist',        name:'GIST',         category:'교과',      hasLimit:true, limitNote:'2명',        gradPolicy:'from',   gradFromYear:2027,y2027:'-', y2026:'-',y2025:'-',  subjects:'자연: 국,수,영,과',                                      method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 합8, 한4'},
+  {id:'dgist',       name:'DGIST',        category:'교과',      hasLimit:true, limitNote:'2명',        gradPolicy:'from',   gradFromYear:2027,y2027:'-', y2026:'-',y2025:'-',  subjects:'자연: 국,수,영,과',                                      method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 합8, 한4'},
+  {id:'kaist',       name:'KAIST',        category:'교과',      hasLimit:true, limitNote:'2명',        gradPolicy:'from',   gradFromYear:2027,y2027:'-', y2026:'-',y2025:'-',  subjects:'자연: 국,수,영,과',                                      method:'교과100',                                           methodType:'kwagyo100',suneung:'국,수,영,탐(1) 3개 합8, 한4'},
 ];
 
 const MIL=[
-  {id:'anursing',    name:'국군간호사관학교',limitNote:'재학생 3명, 졸업생 1명',y2027:90,  type:'고교학교장추천',   subjects:'등급산출 가능 공통·일반선택\n(재학생: 3학년1학기, 졸업생: 3학년2학기)',method:'1차 20% + 2차(면접+체력) 60% + 학생부 20%\n한국사능력검정시험 가산점'},
-  {id:'airforce',    name:'공군사관학교',    limitNote:'5명 (5학기 이상)',        y2027:82,  type:'고교학교장추천',   subjects:'등급산출 가능 공통·일반선택',                                          method:'1차 합/불, 2차 합/불, 체력150, 면접650, 학생부200\n한국사능력검정시험 가산점'},
-  {id:'navy',        name:'해군사관학교',    limitNote:'5명',                     y2027:'-', type:'고교학교장추천',   subjects:'등급산출 가능 공통·일반선택',                                          method:'1차 300점 + 2차 면접 500점 + 체력 100점 + 학생부 100점'},
-  {id:'army',        name:'육군사관학교',    limitNote:'4명',                     y2027:99,  type:'고교학교장 추천',  subjects:'등급산출 가능 공통·일반선택',                                          method:'1차 합불, 2차 면접640 + 체력160 + 내신200'},
-  {id:'army_future', name:'육군사관학교',    limitNote:'3명',                     y2027:66,  type:'미래국방인재전형', subjects:'등급산출 가능 공통·일반선택',                                          method:'학교장추천 받은 자 중\n1차 시험 대신 서류평가'},
+  {id:'anursing',    name:'국군간호사관학교',limitNote:'재학생 3명, 졸업생 1명',y2027:90,  type:'고교학교장추천',  subjects:'등급산출 가능 공통·일반선택\n(재학생: 3학년1학기, 졸업생: 3학년2학기)',method:'1차 20% + 2차(면접+체력) 60% + 학생부 20%\n한국사능력검정시험 가산점'},
+  {id:'airforce',    name:'공군사관학교',    limitNote:'5명 (5학기 이상)',       y2027:82,  type:'고교학교장추천',  subjects:'등급산출 가능 공통·일반선택',                                         method:'1차 합/불, 2차 합/불, 체력150, 면접650, 학생부200\n한국사능력검정시험 가산점'},
+  {id:'navy',        name:'해군사관학교',    limitNote:'5명',                    y2027:'-', type:'고교학교장추천',  subjects:'등급산출 가능 공통·일반선택',                                         method:'1차 300점 + 2차 면접 500점 + 체력 100점 + 학생부 100점'},
+  {id:'army',        name:'육군사관학교',    limitNote:'4명',                    y2027:99,  type:'고교학교장 추천', subjects:'등급산출 가능 공통·일반선택',                                         method:'1차 합불, 2차 면접640 + 체력160 + 내신200'},
+  {id:'army_future', name:'육군사관학교',    limitNote:'3명',                    y2027:66,  type:'미래국방인재전형',subjects:'등급산출 가능 공통·일반선택',                                         method:'학교장추천 받은 자 중\n1차 시험 대신 서류평가'},
 ];
 
-// ── STATE ────────────────────────────────────────────────────────
+// ── STATE & STORAGE ───────────────────────────────────────────────
 let fGroup='all', fMethod=null, fScore=null;
+let isAuthed=false;
+const PW_HASH='eca95a4f1aac8c3fd3a16ec7991f5350c3b5efdf043057023d349bf47abf5fdc';
 
-// ── STORAGE ──────────────────────────────────────────────────────
 const SK=(id,f)=>`u27_${id}_${f}`;
 function load(id,f,def){try{const v=localStorage.getItem(SK(id,f));return v!==null?JSON.parse(v):def}catch{return def}}
 function save(id,f,v){try{localStorage.setItem(SK(id,f),JSON.stringify(v))}catch{}}
 
+// ── EXPORT / IMPORT ───────────────────────────────────────────────
+function exportData(){
+  const data={};
+  UNIS.forEach(u=>{
+    ['info','deptInfo','changes'].forEach(f=>{
+      const v=load(u.id,f,null);
+      if(v!==null){
+        if(!data[u.id])data[u.id]={};
+        data[u.id][f]=v;
+      }
+    });
+  });
+  MIL.forEach(u=>{
+    const sid='mil_'+u.id;
+    ['deptInfo','changes'].forEach(f=>{
+      const v=load(sid,f,null);
+      if(v!==null){
+        if(!data[sid])data[sid]={};
+        data[sid][f]=v;
+      }
+    });
+  });
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='2027_학교장추천_데이터.json';
+  a.click();
+}
+
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      Object.entries(data).forEach(([id,fields])=>{
+        Object.entries(fields).forEach(([f,v])=>save(id,f,v));
+      });
+      loadAllOverrides();
+      renderAll();
+      alert('✅ 데이터를 성공적으로 불러왔습니다!');
+    }catch{alert('❌ 파일 형식이 올바르지 않습니다.');}
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
 // ── OVERRIDE SYSTEM ───────────────────────────────────────────────
-function loadAllOverrides(){UNIS.forEach(u=>{const ov=load(u.id,'info',null);if(ov)Object.assign(u,ov)})}
+function loadAllOverrides(){
+  UNIS.forEach(u=>{const ov=load(u.id,'info',null);if(ov)Object.assign(u,ov)});
+}
 
 function applyAndSaveInfo(id,ov){
   ['y2027','y2026','y2025'].forEach(k=>{if(ov[k]!==undefined&&ov[k]!==''){const n=Number(ov[k]);if(!isNaN(n))ov[k]=n}});
@@ -363,6 +422,12 @@ const methodBadge=u=>{
   if(u.methodType==='interview')return`<span class="badge b-inter">면접포함</span>`;
   if(u.methodType==='docu')return`<span class="badge b-docu">서류포함</span>`;
   return`<span class="badge b-kwagyo">기타</span>`;
+};
+const catBadge=u=>{
+  const c=u.category||'교과';
+  if(c==='종합')return`<span class="badge b-inter">종합</span>`;
+  if(c==='교과(면접)')return`<span class="badge b-docu">교과(면접)</span>`;
+  return`<span class="badge b-kwagyo">교과</span>`;
 };
 const limitBadge=u=>{
   if(!u.hasLimit)return`<span class="badge b-none">제한없음</span>`;
@@ -389,7 +454,6 @@ const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 function setFG(v,b){fGroup=v;document.querySelectorAll('[data-fg]').forEach(x=>x.classList.toggle('active',x.dataset.fg===v));renderAll()}
 function setFM(v,b){if(fMethod===v){fMethod=null;b.classList.remove('active')}else{document.querySelectorAll('[data-fm]').forEach(x=>x.classList.remove('active'));fMethod=v;b.classList.add('active')}renderAll()}
 function setFS(v,b){if(fScore===v){fScore=null;b.classList.remove('active')}else{document.querySelectorAll('[data-fs]').forEach(x=>x.classList.remove('active'));fScore=v;b.classList.add('active')}renderAll()}
-
 function filterU(arr){return arr.filter(u=>{
   if(fMethod&&u.methodType!==fMethod)return false;
   if(fScore==='none'&&u.suneung&&u.suneung!=='없음'&&u.suneung!=='-')return false;
@@ -418,8 +482,8 @@ function renderTable(tbId,unis,showLim){
     const lc=showLim?`<td class="c">${limitBadge(u)}</td>`:'';
     const sc=u.suneung&&u.suneung!=='없음'&&u.suneung!=='-';
     return`<tr>
-      <td class="name-cell" onclick="showDetail('${u.id}')">${u.name}<span class="type-sub">${u.type}</span></td>
-      <td style="white-space:nowrap">${u.type}</td>
+      <td class="name-cell" onclick="showDetail('${u.id}')">${u.name}</td>
+      <td class="c">${catBadge(u)}</td>
       ${lc}
       <td class="c">${gradBadge(u)}</td>
       <td class="c" style="white-space:nowrap">${u.y2027}${diff}</td>
@@ -437,7 +501,7 @@ function renderMil(){
   sec.style.display='';
   document.getElementById('cnt-mil').textContent=MIL.length;
   document.getElementById('tb-mil').innerHTML=MIL.map(u=>`<tr>
-    <td class="name-cell" onclick="showMilDetail('${u.id}')">${u.name}<span class="type-sub">${u.type}</span></td>
+    <td class="name-cell" onclick="showMilDetail('${u.id}')">${u.name}</td>
     <td>${u.type}</td>
     <td class="c"><span class="badge b-limit">${u.limitNote}</span></td>
     <td class="c"><span class="badge b-ok">가능</span></td>
@@ -455,26 +519,47 @@ function showDetail(id){
   document.getElementById('detailView').style.display='block';
   const sc=load(id,'changes',null);
   const changes=sc!==null?sc:autoChanges(u).join('\n');
-  document.getElementById('detailContent').innerHTML=buildDetail(u,changes,load(id,'depts',[]),load(id,'results',[]));
+  // backward compat: migrate old depts+results → deptInfo
+  let deptInfo=load(id,'deptInfo',null);
+  if(!deptInfo){
+    const oldDepts=load(id,'depts',[]);
+    const oldResults=load(id,'results',[]);
+    if(oldDepts.length||oldResults.length){
+      deptInfo=mergeLegacy(oldDepts,oldResults);
+    } else { deptInfo=[]; }
+  }
+  document.getElementById('detailContent').innerHTML=buildDetail(u,changes,deptInfo);
   window.location.hash=`#/detail/${id}`;
 }
+
 function showMilDetail(id){
   const u=MIL.find(x=>x.id===id);if(!u)return;
   window.scrollTo(0,0);
   document.getElementById('mainView').style.display='none';
   document.getElementById('detailView').style.display='block';
   const sid='mil_'+id;
-  document.getElementById('detailContent').innerHTML=buildMilDetail(u,load(sid,'changes',''),load(sid,'depts',[]),load(sid,'results',[]));
+  let deptInfo=load(sid,'deptInfo',null);
+  if(!deptInfo){const old=load(sid,'depts',[]);const oldr=load(sid,'results',[]);deptInfo=(old.length||oldr.length)?mergeLegacy(old,oldr):[];}
+  document.getElementById('detailContent').innerHTML=buildMilDetail(u,load(sid,'changes',''),deptInfo);
   window.location.hash=`#/detail/${sid}`;
 }
 
-function buildDetail(u,changes,depts,results){
+function mergeLegacy(depts,results){
+  const map={};
+  depts.forEach(r=>{const k=r.dept||'';if(!map[k])map[k]={dept:k,count2027:r.count2027||'',count2026:r.count2026||'',avg:'',top70:'',top80:'',top90:'',final:'',note:r.note||''}});
+  results.forEach(r=>{const k=r.dept||'';if(!map[k])map[k]={dept:k,count2027:'',count2026:'',avg:'',top70:'',top80:'',top90:'',final:'',note:''};
+    Object.assign(map[k],{avg:r.avg||'',top70:r.top70||'',top80:r.top80||'',top90:r.top90||'',final:r.final||''});
+  });
+  return Object.values(map);
+}
+
+function buildDetail(u,changes,deptInfo){
   const id=u.id;
   const gradDesc={current:'재학생(현 고3)만 지원 가능',from:`${u.gradFromYear}년 이후 졸업생부터`,confirm:'모집요강에서 확인 필요',all:'졸업연도 제한 없음'}[u.gradPolicy]||'';
   return`
   <div class="detail-top">
     <div><div class="detail-name">${u.name}</div></div>
-    <div class="detail-type-badge">${u.type}</div>
+    <div class="detail-type-badge">${catBadge(u)}</div>
     <button class="ebtn" style="margin-left:auto;align-self:center" onclick="toggleInfoEdit('${id}')">✏️ 기본정보 편집</button>
   </div>
 
@@ -482,7 +567,13 @@ function buildDetail(u,changes,depts,results){
     <div class="info-edit-wrap">
       <div class="iep-title">✏️ 기본정보 편집 — 저장 시 목록에도 즉시 반영됩니다</div>
       <div class="iep-grid">
-        <div class="fg"><label>전형명</label><input class="fi" id="if_type_${id}" value="${esc(u.type)}"></div>
+        <div class="fg"><label>전형종류</label>
+          <select class="fsel" id="if_category_${id}">
+            <option value="교과"     ${(u.category||'교과')==='교과'?'selected':''}>교과</option>
+            <option value="종합"     ${u.category==='종합'?'selected':''}>종합</option>
+            <option value="교과(면접)" ${u.category==='교과(면접)'?'selected':''}>교과(면접)</option>
+          </select>
+        </div>
         <div class="fg"><label>추천인원 제한</label>
           <select class="fsel" id="if_hasLimit_${id}">
             <option value="false" ${!u.hasLimit?'selected':''}>제한없음</option>
@@ -504,7 +595,7 @@ function buildDetail(u,changes,depts,results){
         <div class="fg"><label>2027 모집인원</label><input class="fi" id="if_y2027_${id}" value="${esc(u.y2027)}"></div>
         <div class="fg"><label>2026 모집인원</label><input class="fi" id="if_y2026_${id}" value="${esc(u.y2026)}"></div>
         <div class="fg"><label>2025 모집인원</label><input class="fi" id="if_y2025_${id}" value="${esc(u.y2025)}"></div>
-        <div class="fg"><label>전형방식 분류 (뱃지)</label>
+        <div class="fg"><label>전형방식 분류</label>
           <select class="fsel" id="if_methodType_${id}">
             <option value="kwagyo100" ${u.methodType==='kwagyo100'?'selected':''}>교과100</option>
             <option value="docu"      ${u.methodType==='docu'?'selected':''}>서류포함</option>
@@ -513,7 +604,7 @@ function buildDetail(u,changes,depts,results){
         </div>
       </div>
       <div class="iep-grid-wide">
-        <div class="fg"><label>전형방식 (상세 설명)</label><textarea class="fta tall" id="if_method_${id}">${esc(u.method)}</textarea></div>
+        <div class="fg"><label>전형방식 (상세)</label><textarea class="fta tall" id="if_method_${id}">${esc(u.method)}</textarea></div>
         <div class="fg"><label>반영 교과</label><textarea class="fta tall" id="if_subjects_${id}">${esc(u.subjects)}</textarea></div>
         <div class="fg" style="grid-column:span 2"><label>수능 최저학력기준</label><textarea class="fta" id="if_suneung_${id}">${esc(u.suneung)}</textarea></div>
       </div>
@@ -554,10 +645,10 @@ function buildDetail(u,changes,depts,results){
       <div class="ic-val" style="font-size:13px;white-space:pre-wrap">${u.suneung||'없음'}</div>
     </div>
   </div>
-  ${subSections(id,depts,changes,results)}`;
+  ${subSections(id,deptInfo,changes)}`;
 }
 
-function buildMilDetail(u,changes,depts,results){
+function buildMilDetail(u,changes,deptInfo){
   const sid='mil_'+u.id;
   return`<div class="detail-top">
     <div><div class="detail-name">${u.name}</div></div>
@@ -570,24 +661,23 @@ function buildMilDetail(u,changes,depts,results){
     <div class="info-card"><div class="ic-label">반영 교과</div><div class="ic-val" style="font-size:13px;white-space:pre-wrap">${u.subjects}</div></div>
     <div class="info-card" style="grid-column:span 2"><div class="ic-label">전형방식</div><div class="ic-val" style="font-size:13px;white-space:pre-wrap">${u.method}</div></div>
   </div>
-  ${subSections(sid,depts,changes,results)}`;
+  ${subSections(sid,deptInfo,changes)}`;
 }
 
-function subSections(id,depts,changes,results){return`
+function subSections(id,deptInfo,changes){return`
   <div class="dsec">
-    <div class="dsec-hdr"><div class="dsec-title">📋 모집 학과 및 인원</div>
-      <button class="ebtn" id="de-${id}" onclick="editDepts('${id}')">✏️ 편집</button></div>
-    <div class="dsec-body" id="db-${id}">${renderDepts(id,depts,false)}</div>
+    <div class="dsec-hdr">
+      <div class="dsec-title">📋 학과별 모집인원 및 입시결과</div>
+      <button class="ebtn" id="de-${id}" onclick="editDeptInfo('${id}')">✏️ 편집</button>
+    </div>
+    <div class="dsec-body" id="db-${id}">${renderDeptInfo(id,deptInfo,false)}</div>
   </div>
   <div class="dsec">
-    <div class="dsec-hdr"><div class="dsec-title">🔄 2027년 변경사항 <span style="font-size:12px;font-weight:400;color:var(--muted)">(2026 대비)</span></div>
-      <button class="ebtn" id="ce-${id}" onclick="editChanges('${id}')">✏️ 편집</button></div>
+    <div class="dsec-hdr">
+      <div class="dsec-title">🔄 2027년 변경사항 <span style="font-size:12px;font-weight:400;color:var(--muted)">(2026 대비)</span></div>
+      <button class="ebtn" id="ce-${id}" onclick="editChanges('${id}')">✏️ 편집</button>
+    </div>
     <div class="dsec-body" id="cb-${id}">${renderChanges(id,changes,false)}</div>
-  </div>
-  <div class="dsec">
-    <div class="dsec-hdr"><div class="dsec-title">📊 2026학년도 입시 결과</div>
-      <button class="ebtn" id="re-${id}" onclick="editResults('${id}')">✏️ 편집</button></div>
-    <div class="dsec-body" id="rb-${id}">${renderResults(id,results,false)}</div>
   </div>`;}
 
 // ── INFO EDIT ─────────────────────────────────────────────────────
@@ -607,125 +697,62 @@ function updateGYF(id){
 function saveInfoEdit(id){
   const g=k=>document.getElementById(`if_${k}_${id}`);
   const ov={
-    type:g('type').value.trim(),hasLimit:g('hasLimit').value,limitNote:g('limitNote').value.trim(),
+    category:g('category').value,hasLimit:g('hasLimit').value,limitNote:g('limitNote').value.trim(),
     gradPolicy:g('gradPolicy').value,gradFromYear:g('gradFromYear').value.trim()||null,
     y2027:g('y2027').value.trim(),y2026:g('y2026').value.trim(),y2025:g('y2025').value.trim(),
     methodType:g('methodType').value,method:g('method').value.trim(),
     subjects:g('subjects').value.trim(),suneung:g('suneung').value.trim(),
   };
   applyAndSaveInfo(id,ov);
-  // Refresh detail
   const u=UNIS.find(x=>x.id===id);
   if(u){const sc=load(id,'changes',null);const ch=sc!==null?sc:autoChanges(u).join('\n');
-    document.getElementById('detailContent').innerHTML=buildDetail(u,ch,load(id,'depts',[]),load(id,'results',[]));}
+    const di=load(id,'deptInfo',[]);
+    document.getElementById('detailContent').innerHTML=buildDetail(u,ch,di);}
 }
 
-// ── DEPTS ─────────────────────────────────────────────────────────
-function renderDepts(id,depts,editing){
+// ── DEPTINFO (merged table) ───────────────────────────────────────
+const DI_COLS=['dept','count2027','count2026','avg','top70','top80','top90','final','note'];
+
+function renderDeptInfo(id,rows,editing){
   if(editing){
-    const rows=depts.length?depts:[{dept:'',count2027:'',count2026:'',note:''}];
+    const data=rows.length?rows:[{dept:'',count2027:'',count2026:'',avg:'',top70:'',top80:'',top90:'',final:'',note:''}];
     return`
     <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1E40AF;line-height:1.7">
-      <strong>📋 엑셀/스프레드시트에서 복붙하는 법</strong><br>
-      스프레드시트에서 데이터를 복사한 뒤, 아래 <strong>회색 영역</strong>에 붙여넣기 하세요.<br>
-      열 순서: <code style="background:#DBEAFE;padding:1px 5px;border-radius:3px">학과명 | 2027 모집 | 2026 모집 | 비고</code>
+      <strong>📋 스프레드시트 복붙</strong> — 아래 영역에 붙여넣기 후 <b>⬇️ 가져오기</b> 클릭<br>
+      열 순서: <code style="background:#DBEAFE;padding:1px 5px;border-radius:3px">학과명 | 2027모집 | 2026모집 | 평균 | 70%컷 | 80%컷 | 90%컷 | 최종합격컷 | 비고</code>
     </div>
     <div style="border:2px dashed #93C5FD;border-radius:8px;background:#F8FAFF;padding:10px;margin-bottom:12px">
-      <div style="font-size:11px;color:#6B7280;margin-bottom:6px">📌 여기에 스프레드시트 내용 붙여넣기 (Ctrl+V / ⌘V)</div>
-      <textarea id="dpaste-area-${id}" class="edit-area" style="min-height:70px;font-family:monospace;font-size:12px;background:#fff" placeholder="스프레드시트에서 복사한 내용을 여기에 붙여넣으세요&#10;예) 컴퓨터공학과	15	14	&#10;전자공학과	10	12	" onpaste="scheduleDeptPaste('${id}')"></textarea>
-      <button class="ebtn" style="margin-top:6px" onclick="importDeptPaste('${id}')">⬇️ 표로 가져오기</button>
+      <textarea id="dipaste-${id}" class="edit-area" style="min-height:65px;font-family:monospace;font-size:12px;background:#fff" placeholder="스프레드시트에서 복사 후 붙여넣기 (Ctrl+V)" onpaste="setTimeout(()=>importDI('${id}'),50)"></textarea>
+      <button class="ebtn" style="margin-top:6px" onclick="importDI('${id}')">⬇️ 가져오기</button>
     </div>
-    <div class="dt-wrap"><table class="dt" id="dt-${id}">
-      <thead><tr><th>학과/전공명</th><th>2027 모집</th><th>2026 모집</th><th>비고</th><th></th></tr></thead>
-      <tbody>${rows.map(r=>`<tr>
+    <div class="dt-wrap"><table class="dt" id="dit-${id}">
+      <thead><tr><th>학과/전공명</th><th>2027 모집</th><th>2026 모집</th><th>평균</th><th>70%컷</th><th>80%컷</th><th>90%컷</th><th>최종합격컷</th><th>비고</th><th></th></tr></thead>
+      <tbody>${data.map(r=>`<tr>
         <td><input value="${esc(r.dept)}" placeholder="학과명"></td>
-        <td><input value="${esc(r.count2027)}" placeholder="인원" style="width:70px"></td>
-        <td><input value="${esc(r.count2026)}" placeholder="인원" style="width:70px"></td>
+        <td><input value="${esc(r.count2027)}" style="width:55px" placeholder="-"></td>
+        <td><input value="${esc(r.count2026)}" style="width:55px" placeholder="-"></td>
+        <td><input value="${esc(r.avg)}"      style="width:50px" placeholder="-"></td>
+        <td><input value="${esc(r.top70)}"    style="width:50px" placeholder="-"></td>
+        <td><input value="${esc(r.top80)}"    style="width:50px" placeholder="-"></td>
+        <td><input value="${esc(r.top90)}"    style="width:50px" placeholder="-"></td>
+        <td><input value="${esc(r.final||'')}"style="width:55px" placeholder="-"></td>
         <td><input value="${esc(r.note)}" placeholder="비고"></td>
         <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>
       </tr>`).join('')}</tbody>
     </table></div>
-    <button class="add-row" onclick="addRow('dt-${id}',false)">+ 행 추가</button>
+    <button class="add-row" onclick="addDIRow('${id}')">+ 행 추가</button>
     <div class="btn-group" style="margin-top:10px">
-      <button class="sbtn" onclick="saveDepts('${id}')">💾 저장</button>
-      <button class="cbtn" onclick="cancelSec('depts','${id}')">취소</button>
+      <button class="sbtn" onclick="saveDeptInfo('${id}')">💾 저장</button>
+      <button class="cbtn" onclick="cancelDeptInfo('${id}')">취소</button>
     </div>`;
   }
-  if(!depts.length)return`<div class="placeholder">학과 및 인원 정보를 추가해주세요 (✏️ 편집 클릭)</div>`;
+  if(!rows.length)return`<div class="placeholder">편집 버튼으로 학과별 정보를 입력하거나 스프레드시트에서 붙여넣기 하세요</div>`;
   return`<div class="dt-wrap"><table class="dt">
-    <thead><tr><th>학과/전공명</th><th>2027 모집</th><th>2026 모집</th><th>비고</th></tr></thead>
-    <tbody>${depts.map(r=>`<tr>
+    <thead><tr><th>학과/전공명</th><th>2027 모집</th><th>2026 모집</th><th>평균</th><th>70%컷</th><th>80%컷</th><th>90%컷</th><th>최종합격컷</th><th>비고</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
       <td>${r.dept||''}</td>
       <td style="text-align:center">${r.count2027||''}</td>
       <td style="text-align:center">${r.count2026||''}</td>
-      <td style="color:var(--muted);font-size:12px">${r.note||''}</td>
-    </tr>`).join('')}</tbody>
-  </table></div>`;
-}
-function editDepts(id){if(!isAuthed){openAuthModal();return}
-  document.getElementById(`db-${id}`).innerHTML=renderDepts(id,load(id,'depts',[]),true);document.getElementById(`de-${id}`).style.display='none'}
-function saveDepts(id){
-  const rows=Array.from(document.querySelectorAll(`#dt-${id} tbody tr`));
-  const d=rows.map(r=>{const i=r.querySelectorAll('input');return{dept:i[0].value,count2027:i[1].value,count2026:i[2].value,note:i[3].value}}).filter(r=>r.dept||r.count2027);
-  save(id,'depts',d);document.getElementById(`db-${id}`).innerHTML=renderDepts(id,d,false);document.getElementById(`de-${id}`).style.display='';
-}
-
-// ── CHANGES ───────────────────────────────────────────────────────
-function renderChanges(id,changes,editing){
-  if(editing)return`<textarea class="edit-area" id="cta-${id}" placeholder="2026년 대비 변경사항">${esc(changes)}</textarea>
-    <div class="btn-group" style="margin-top:8px"><button class="sbtn" onclick="saveChanges('${id}')">💾 저장</button><button class="cbtn" onclick="cancelSec('changes','${id}')">취소</button></div>`;
-  if(!changes)return`<div class="placeholder">변경사항을 입력해주세요 (✏️ 편집 클릭)</div>`;
-  return`<div style="white-space:pre-wrap;font-size:13px;line-height:1.7">${changes}</div>`;
-}
-function editChanges(id){if(!isAuthed){openAuthModal();return}
-  const sc=load(id,'changes',null);const u=UNIS.find(x=>x.id===id);
-  const val=sc!==null?sc:(u?autoChanges(u).join('\n'):'');
-  document.getElementById(`cb-${id}`).innerHTML=renderChanges(id,val,true);document.getElementById(`ce-${id}`).style.display='none';
-}
-function saveChanges(id){
-  const v=document.getElementById(`cta-${id}`).value;
-  save(id,'changes',v);document.getElementById(`cb-${id}`).innerHTML=renderChanges(id,v,false);document.getElementById(`ce-${id}`).style.display='';
-}
-
-// ── RESULTS ───────────────────────────────────────────────────────
-function renderResults(id,results,editing){
-  if(editing){
-    const rows=results.length?results:[{dept:'',avg:'',top70:'',top80:'',top90:'',final:'',note:''}];
-    return`
-    <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1E40AF;line-height:1.7">
-      <strong>📋 엑셀/스프레드시트에서 복붙하는 법</strong><br>
-      스프레드시트에서 데이터를 복사한 뒤, 아래 <strong>회색 영역</strong>에 붙여넣기 하세요.<br>
-      열 순서: <code style="background:#DBEAFE;padding:1px 5px;border-radius:3px">학과명 | 평균 | 70%컷 | 80%컷 | 90%컷 | 최종합격컷 | 비고</code>
-    </div>
-    <div style="border:2px dashed #93C5FD;border-radius:8px;background:#F8FAFF;padding:10px;margin-bottom:12px">
-      <div style="font-size:11px;color:#6B7280;margin-bottom:6px">📌 여기에 스프레드시트 내용 붙여넣기 (Ctrl+V / ⌘V)</div>
-      <textarea id="paste-area-${id}" class="edit-area" style="min-height:70px;font-family:monospace;font-size:12px;background:#fff" placeholder="스프레드시트에서 복사한 내용을 여기에 붙여넣으세요&#10;예) 컴퓨터공학과	1.8	2.1	2.3	2.5	2.6	&#10;수학과	2.0	2.2	2.4	2.6	2.7	" onpaste="schedulePasteImport('${id}')"></textarea>
-      <button class="ebtn" style="margin-top:6px" onclick="importPaste('${id}')">⬇️ 표로 가져오기</button>
-    </div>
-    <div class="dt-wrap"><table class="dt" id="rt-${id}">
-      <thead><tr><th>학과/전공</th><th>평균</th><th>70%컷</th><th>80%컷</th><th>90%컷</th><th>최종합격컷</th><th>비고</th><th></th></tr></thead>
-      <tbody>${rows.map(r=>`<tr>
-        <td><input value="${esc(r.dept)}" placeholder="학과명"></td>
-        <td><input value="${esc(r.avg)}" placeholder="등급" style="width:60px"></td>
-        <td><input value="${esc(r.top70)}" placeholder="등급" style="width:60px"></td>
-        <td><input value="${esc(r.top80)}" placeholder="등급" style="width:60px"></td>
-        <td><input value="${esc(r.top90)}" placeholder="등급" style="width:60px"></td>
-        <td><input value="${esc(r.final||'')}" placeholder="등급" style="width:60px"></td>
-        <td><input value="${esc(r.note)}" placeholder="비고"></td>
-        <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-    <button class="add-row" onclick="addRow('rt-${id}',true)">+ 행 추가</button>
-    <div class="btn-group" style="margin-top:10px">
-      <button class="sbtn" onclick="saveResults('${id}')">💾 저장</button>
-      <button class="cbtn" onclick="cancelSec('results','${id}')">취소</button>
-    </div>`;
-  }
-  if(!results.length)return`<div class="placeholder">2026학년도 입시 결과 발표 후 추가 예정 (✏️ 편집 클릭)</div>`;
-  return`<div class="dt-wrap"><table class="dt">
-    <thead><tr><th>학과/전공</th><th>평균</th><th>70%컷</th><th>80%컷</th><th>90%컷</th><th>최종합격컷</th><th>비고</th></tr></thead>
-    <tbody>${results.map(r=>`<tr>
-      <td>${r.dept||''}</td>
       <td style="text-align:center">${r.avg||''}</td>
       <td style="text-align:center">${r.top70||''}</td>
       <td style="text-align:center">${r.top80||''}</td>
@@ -735,102 +762,100 @@ function renderResults(id,results,editing){
     </tr>`).join('')}</tbody>
   </table></div>`;
 }
-function editResults(id){if(!isAuthed){openAuthModal();return}
-  document.getElementById(`rb-${id}`).innerHTML=renderResults(id,load(id,'results',[]),true);document.getElementById(`re-${id}`).style.display='none'}
-function saveResults(id){
-  const rows=Array.from(document.querySelectorAll(`#rt-${id} tbody tr`));
-  const r=rows.map(r=>{const i=r.querySelectorAll('input');return{dept:i[0].value,avg:i[1].value,top70:i[2].value,top80:i[3].value,top90:i[4].value,final:i[5].value,note:i[6].value}}).filter(r=>r.dept||r.avg);
-  save(id,'results',r);document.getElementById(`rb-${id}`).innerHTML=renderResults(id,r,false);document.getElementById(`re-${id}`).style.display='';
-}
 
-// ── GENERIC ───────────────────────────────────────────────────────
-function cancelSec(type,id){
-  const def=type==='changes'?'':[];
-  const data=load(id,type,def);
-  const body=document.getElementById(`${type==='depts'?'d':type==='changes'?'c':'r'}b-${id}`);
-  if(body)body.innerHTML=type==='depts'?renderDepts(id,data,false):type==='changes'?renderChanges(id,data,false):renderResults(id,data,false);
-  const btn=document.getElementById(`${type==='depts'?'d':type==='changes'?'c':'r'}e-${id}`);
-  if(btn)btn.style.display='';
+function editDeptInfo(id){if(!isAuthed){openAuthModal();return}
+  const rows=load(id,'deptInfo',null)||(()=>{const od=load(id,'depts',[]);const or=load(id,'results',[]);return(od.length||or.length)?mergeLegacy(od,or):[]})();
+  document.getElementById(`db-${id}`).innerHTML=renderDeptInfo(id,rows,true);
+  document.getElementById(`de-${id}`).style.display='none';
 }
-function addRow(tblId,isRes){
-  const tbody=document.querySelector(`#${tblId} tbody`);
+function saveDeptInfo(id){
+  const trs=Array.from(document.querySelectorAll(`#dit-${id} tbody tr`));
+  const rows=trs.map(tr=>{const inp=tr.querySelectorAll('input');
+    return{dept:inp[0].value,count2027:inp[1].value,count2026:inp[2].value,avg:inp[3].value,top70:inp[4].value,top80:inp[5].value,top90:inp[6].value,final:inp[7].value,note:inp[8].value};
+  }).filter(r=>r.dept||r.count2027||r.avg);
+  save(id,'deptInfo',rows);
+  document.getElementById(`db-${id}`).innerHTML=renderDeptInfo(id,rows,false);
+  document.getElementById(`de-${id}`).style.display='';
+}
+function cancelDeptInfo(id){
+  const rows=load(id,'deptInfo',[])||[];
+  document.getElementById(`db-${id}`).innerHTML=renderDeptInfo(id,rows,false);
+  document.getElementById(`de-${id}`).style.display='';
+}
+function addDIRow(id){
+  const tbody=document.querySelector(`#dit-${id} tbody`);
   const tr=document.createElement('tr');
-  tr.innerHTML=isRes
-    ?`<td><input placeholder="학과명"></td><td><input placeholder="등급" style="width:60px"></td><td><input placeholder="등급" style="width:60px"></td><td><input placeholder="등급" style="width:60px"></td><td><input placeholder="등급" style="width:60px"></td><td><input placeholder="등급" style="width:60px"></td><td><input placeholder="비고"></td><td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>`
-    :`<td><input placeholder="학과명"></td><td><input placeholder="인원"></td><td><input placeholder="인원"></td><td><input placeholder="비고"></td><td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>`;
+  tr.innerHTML=`<td><input placeholder="학과명"></td><td><input style="width:55px" placeholder="-"></td><td><input style="width:55px" placeholder="-"></td><td><input style="width:50px" placeholder="-"></td><td><input style="width:50px" placeholder="-"></td><td><input style="width:50px" placeholder="-"></td><td><input style="width:50px" placeholder="-"></td><td><input style="width:55px" placeholder="-"></td><td><input placeholder="비고"></td><td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>`;
   tbody.appendChild(tr);
 }
-
-function schedulePasteImport(id){setTimeout(()=>importPaste(id),50)}
-function scheduleDeptPaste(id){setTimeout(()=>importDeptPaste(id),50)}
-
-function importDeptPaste(id){
-  const ta=document.getElementById(`dpaste-area-${id}`);
-  const raw=ta.value.trim();
-  if(!raw)return;
-  const lines=raw.split('\n').filter(l=>l.trim());
-  const parsed=lines.map(line=>{
-    const cols=line.split('\t').map(c=>c.trim());
-    return{dept:cols[0]||'',count2027:cols[1]||'',count2026:cols[2]||'',note:cols[3]||''};
-  }).filter(r=>r.dept||r.count2027);
+function importDI(id){
+  const ta=document.getElementById(`dipaste-${id}`);
+  const raw=ta.value.trim();if(!raw)return;
+  const parsed=raw.split('\n').filter(l=>l.trim()).map(line=>{
+    const c=line.split('\t').map(x=>x.trim());
+    return{dept:c[0]||'',count2027:c[1]||'',count2026:c[2]||'',avg:c[3]||'',top70:c[4]||'',top80:c[5]||'',top90:c[6]||'',final:c[7]||'',note:c[8]||''};
+  }).filter(r=>r.dept||r.count2027||r.avg);
   if(!parsed.length)return;
-  const tbody=document.querySelector(`#dt-${id} tbody`);
-  const existRows=Array.from(tbody.querySelectorAll('tr')).filter(r=>{
-    const first=r.querySelector('input');return first&&first.value.trim();
-  });
-  if(existRows.length===0||(existRows.length===1&&!existRows[0].querySelector('input').value)){
-    tbody.innerHTML='';
-  }
+  const tbody=document.querySelector(`#dit-${id} tbody`);
+  const hasData=Array.from(tbody.querySelectorAll('input')).some(i=>i.value.trim());
+  if(!hasData)tbody.innerHTML='';
   parsed.forEach(r=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><input value="${esc(r.dept)}" placeholder="학과명"></td>
-      <td><input value="${esc(r.count2027)}" placeholder="인원" style="width:70px"></td>
-      <td><input value="${esc(r.count2026)}" placeholder="인원" style="width:70px"></td>
-      <td><input value="${esc(r.note)}" placeholder="비고"></td>
-      <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>`;
+    tr.innerHTML=`<td><input value="${esc(r.dept)}"></td><td><input value="${esc(r.count2027)}" style="width:55px"></td><td><input value="${esc(r.count2026)}" style="width:55px"></td><td><input value="${esc(r.avg)}" style="width:50px"></td><td><input value="${esc(r.top70)}" style="width:50px"></td><td><input value="${esc(r.top80)}" style="width:50px"></td><td><input value="${esc(r.top90)}" style="width:50px"></td><td><input value="${esc(r.final)}" style="width:55px"></td><td><input value="${esc(r.note)}"></td><td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>`;
     tbody.appendChild(tr);
   });
-  ta.value='';
-  ta.placeholder='✅ '+parsed.length+'개 행이 추가되었습니다. 저장 버튼을 눌러주세요.';
+  ta.value='';ta.placeholder=`✅ ${parsed.length}개 행 추가됨. 저장 버튼을 눌러주세요.`;
 }
 
-function importPaste(id){
-  const ta=document.getElementById(`paste-area-${id}`);
-  const raw=ta.value.trim();
-  if(!raw)return;
-  const lines=raw.split('\n').filter(l=>l.trim());
-  const parsed=lines.map(line=>{
-    const cols=line.split('\t').map(c=>c.trim());
-    return{
-      dept:cols[0]||'', avg:cols[1]||'', top70:cols[2]||'',
-      top80:cols[3]||'', top90:cols[4]||'', final:cols[5]||'', note:cols[6]||''
-    };
-  }).filter(r=>r.dept||r.avg);
-  if(!parsed.length)return;
-  const tbody=document.querySelector(`#rt-${id} tbody`);
-  // Append rows (don't overwrite manual rows)
-  const existRows=Array.from(tbody.querySelectorAll('tr')).filter(r=>{
-    const first=r.querySelector('input');return first&&first.value.trim();
-  });
-  // If only one empty row exists, replace it
-  if(existRows.length===0||(existRows.length===1&&!existRows[0].querySelector('input').value)){
-    tbody.innerHTML='';
-  }
-  parsed.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td><input value="${esc(r.dept)}" placeholder="학과명"></td>
-      <td><input value="${esc(r.avg)}" placeholder="등급" style="width:60px"></td>
-      <td><input value="${esc(r.top70)}" placeholder="등급" style="width:60px"></td>
-      <td><input value="${esc(r.top80)}" placeholder="등급" style="width:60px"></td>
-      <td><input value="${esc(r.top90)}" placeholder="등급" style="width:60px"></td>
-      <td><input value="${esc(r.final)}" placeholder="등급" style="width:60px"></td>
-      <td><input value="${esc(r.note)}" placeholder="비고"></td>
-      <td><button class="del-row" onclick="this.closest('tr').remove()">×</button></td>`;
-    tbody.appendChild(tr);
-  });
-  ta.value='';
-  ta.placeholder='✅ '+parsed.length+'개 행이 추가되었습니다. 저장 버튼을 눌러주세요.';
+// ── CHANGES ───────────────────────────────────────────────────────
+function renderChanges(id,changes,editing){
+  if(editing)return`<textarea class="edit-area" id="cta-${id}" placeholder="2026년 대비 변경사항">${esc(changes)}</textarea>
+    <div class="btn-group" style="margin-top:8px"><button class="sbtn" onclick="saveChanges('${id}')">💾 저장</button><button class="cbtn" onclick="cancelChanges('${id}')">취소</button></div>`;
+  if(!changes)return`<div class="placeholder">변경사항을 입력해주세요 (✏️ 편집 클릭)</div>`;
+  return`<div style="white-space:pre-wrap;font-size:13px;line-height:1.7">${changes}</div>`;
 }
+function editChanges(id){if(!isAuthed){openAuthModal();return}
+  const sc=load(id,'changes',null);const u=UNIS.find(x=>x.id===id);
+  const val=sc!==null?sc:(u?autoChanges(u).join('\n'):'');
+  document.getElementById(`cb-${id}`).innerHTML=renderChanges(id,val,true);
+  document.getElementById(`ce-${id}`).style.display='none';
+}
+function saveChanges(id){
+  const v=document.getElementById(`cta-${id}`).value;
+  save(id,'changes',v);
+  document.getElementById(`cb-${id}`).innerHTML=renderChanges(id,v,false);
+  document.getElementById(`ce-${id}`).style.display='';
+}
+function cancelChanges(id){
+  const v=load(id,'changes','');
+  document.getElementById(`cb-${id}`).innerHTML=renderChanges(id,v,false);
+  document.getElementById(`ce-${id}`).style.display='';
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+function openAuthModal(){document.getElementById('authModal').style.display='flex';document.getElementById('pwInput').value='';document.getElementById('pwErr').textContent='';setTimeout(()=>document.getElementById('pwInput').focus(),50)}
+function toggleAuth(){if(isAuthed){lockDown();return}openAuthModal()}
+async function doAuth(){
+  const hash=await sha256(document.getElementById('pwInput').value);
+  if(hash===PW_HASH){
+    isAuthed=true;closeModal();
+    document.getElementById('lockIcon').textContent='🔓';
+    document.getElementById('lockLabel').textContent='편집 중';
+    document.getElementById('lockBtn').style.background='rgba(30,126,74,0.4)';
+    document.getElementById('lockBtn').style.borderColor='rgba(30,126,74,0.6)';
+  }else{document.getElementById('pwErr').textContent='비밀번호가 올바르지 않습니다';document.getElementById('pwInput').select()}
+}
+function lockDown(){
+  isAuthed=false;
+  document.getElementById('lockIcon').textContent='🔒';
+  document.getElementById('lockLabel').textContent='편집 잠김';
+  document.getElementById('lockBtn').style.background='rgba(255,255,255,0.15)';
+  document.getElementById('lockBtn').style.borderColor='rgba(255,255,255,0.3)';
+  document.querySelectorAll('[id^="iep-"]').forEach(el=>el.style.display='none');
+  document.querySelectorAll('[id^="icards-"]').forEach(el=>el.style.display='');
+}
+function closeModal(){document.getElementById('authModal').style.display='none'}
 
 // ── NAV ───────────────────────────────────────────────────────────
 function showMain(){
@@ -845,79 +870,11 @@ function handleHash(){
     if(id.startsWith('mil_')){const u=MIL.find(x=>x.id===id.slice(4));if(u){showMilDetail(u.id);return}}
     if(UNIS.find(x=>x.id===id)){showDetail(id);return}
   }
-  showMain();
-  renderAll();
+  showMain();renderAll();
 }
 
 window.addEventListener('scroll',()=>document.getElementById('scrollTopBtn').classList.toggle('show',window.scrollY>300));
 window.addEventListener('hashchange',handleHash);
-
-// ── AUTH ──────────────────────────────────────────────────────────
-const PW_HASH='eca95a4f1aac8c3fd3a16ec7991f5350c3b5efdf043057023d349bf47abf5fdc';
-let isAuthed=false;
-
-async function sha256(str){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-function openAuthModal(){
-  document.getElementById('authModal').style.display='flex';
-  document.getElementById('pwInput').value='';
-  document.getElementById('pwErr').textContent='';
-  setTimeout(()=>document.getElementById('pwInput').focus(),50);
-}
-
-function toggleAuth(){
-  if(isAuthed){lockDown();return}
-  openAuthModal();
-}
-
-async function doAuth(){
-  const val=document.getElementById('pwInput').value;
-  const hash=await sha256(val);
-  if(hash===PW_HASH){
-    isAuthed=true;
-    closeModal();
-    document.getElementById('lockIcon').textContent='🔓';
-    document.getElementById('lockLabel').textContent='편집 중';
-    document.getElementById('lockBtn').style.background='rgba(30,126,74,0.4)';
-    document.getElementById('lockBtn').style.borderColor='rgba(30,126,74,0.6)';
-    showEditBtns(true);
-  } else {
-    document.getElementById('pwErr').textContent='비밀번호가 올바르지 않습니다';
-    document.getElementById('pwInput').select();
-  }
-}
-
-function lockDown(){
-  isAuthed=false;
-  document.getElementById('lockIcon').textContent='🔒';
-  document.getElementById('lockLabel').textContent='편집 잠김';
-  document.getElementById('lockBtn').style.background='rgba(255,255,255,0.15)';
-  document.getElementById('lockBtn').style.borderColor='rgba(255,255,255,0.3)';
-  showEditBtns(false);
-  // Close any open edit panels in detail view
-  document.querySelectorAll('[id^="iep-"]').forEach(el=>el.style.display='none');
-  document.querySelectorAll('[id^="icards-"]').forEach(el=>el.style.display='');
-}
-
-function closeModal(){document.getElementById('authModal').style.display='none'}
-
-function showEditBtns(show){
-  // In list view: nothing to show/hide
-  // In detail view: toggle all edit buttons visibility
-  const sel='[id^="de-"],[id^="ce-"],[id^="re-"],[class="ebtn"]';
-  document.querySelectorAll('.ebtn').forEach(b=>{
-    // Only affect edit buttons, not the lock button or back button
-    if(b.getAttribute('onclick')&&(
-      b.getAttribute('onclick').includes('editDepts')||
-      b.getAttribute('onclick').includes('editChanges')||
-      b.getAttribute('onclick').includes('editResults')||
-      b.getAttribute('onclick').includes('toggleInfoEdit')
-    )) b.style.display=show?'':'none';
-  });
-}
 
 // ── INIT ─────────────────────────────────────────────────────────
 loadAllOverrides();
